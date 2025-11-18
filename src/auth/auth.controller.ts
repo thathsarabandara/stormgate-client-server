@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -6,6 +15,11 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UserProfile } from './interfaces/user-profile.interface';
+
+interface GoogleRequest extends Request {
+  user: UserProfile;
+}
 
 @Controller('auth')
 export class AuthController {
@@ -44,9 +58,8 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleCallback(@Req() req: any) {
-    const profile = req.user as { id: string; email: string; name?: string };
-    return this.authService.handleGoogleLogin(profile);
+  googleCallback(@Req() req: GoogleRequest) {
+    return this.authService.handleGoogleLogin(req.user);
   }
 
   @Get('verify-email')

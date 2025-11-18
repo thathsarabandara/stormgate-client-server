@@ -3,17 +3,18 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../../src/users/users.service';
 import { AuthService } from '../../src/auth/auth.service';
+import { User } from '../../src/users/entities/user.entity';
 
 describe('AuthService', () => {
   let service: AuthService;
   let usersService: UsersService;
   let jwtService: JwtService;
 
-  const mockUser = {
+  const mockUser: Partial<User> = {
     id: 1,
     username: 'testuser',
     email: 'test@example.com',
-    password: 'hashedpassword',
+    password: { passwordHash: 'hashedpassword' } as any,
     isEmailVerified: true,
     role: 'user',
   };
@@ -57,12 +58,14 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user if credentials are valid', async () => {
-      jest.spyOn(usersService, 'findByEmailWithPassword').mockResolvedValueOnce({
-        ...mockUser,
-        password: { passwordHash: 'hashedpassword' } as any,
-      } as any);
+      jest
+        .spyOn(usersService, 'findByEmailWithPassword')
+        .mockResolvedValueOnce({
+          ...mockUser,
+          password: { passwordHash: 'hashedpassword' } as any,
+        } as any);
       jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
-      
+
       const result = await service.validateUser('test@example.com', 'password');
       expect(result).toEqual({
         id: mockUser.id,
@@ -73,21 +76,31 @@ describe('AuthService', () => {
     });
 
     it('should return null if user is not found', async () => {
-      jest.spyOn(usersService, 'findByEmailWithPassword').mockResolvedValueOnce(null);
-      const result = await service.validateUser('nonexistent@example.com', 'password');
+      jest
+        .spyOn(usersService, 'findByEmailWithPassword')
+        .mockResolvedValueOnce(null);
+      const result = await service.validateUser(
+        'nonexistent@example.com',
+        'password',
+      );
       expect(result).toBeNull();
     });
   });
 
   describe('login', () => {
     it('should return access token', async () => {
-      jest.spyOn(usersService, 'findByEmailWithPassword').mockResolvedValueOnce({
-        ...mockUser,
-        password: { passwordHash: 'hashedpassword' } as any,
-      } as any);
+      jest
+        .spyOn(usersService, 'findByEmailWithPassword')
+        .mockResolvedValueOnce({
+          ...mockUser,
+          password: { passwordHash: 'hashedpassword' } as any,
+        } as any);
       jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
 
-      const result = await service.login({ email: mockUser.email, password: 'password' });
+      const result = await service.login({
+        email: mockUser.email,
+        password: 'password',
+      });
       expect(result).toEqual({
         accessToken: mockToken,
       });

@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('refresh_tokens')
@@ -12,7 +20,7 @@ export class RefreshToken {
   @Column({ type: 'datetime' })
   expiresAt: Date;
 
-  @ManyToOne(() => User, user => user.refreshTokens)
+  @ManyToOne(() => User, (user) => user.refreshTokens)
   @JoinColumn({ name: 'userId' })
   user: User;
 

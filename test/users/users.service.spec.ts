@@ -9,7 +9,10 @@ import { PasswordReset } from '../../src/users/entities/password-reset.entity';
 describe('UsersService', () => {
   let service: UsersService;
   let userRepository: Repository<User>;
+  // These are used by the repository injection tokens
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let userPasswordRepository: Repository<UserPassword>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let passwordResetRepository: Repository<PasswordReset>;
 
   const USER_REPOSITORY_TOKEN = getRepositoryToken(User);
@@ -60,8 +63,12 @@ describe('UsersService', () => {
 
     service = module.get<UsersService>(UsersService);
     userRepository = module.get<Repository<User>>(USER_REPOSITORY_TOKEN);
-    userPasswordRepository = module.get<Repository<UserPassword>>(USER_PASSWORD_REPOSITORY_TOKEN);
-    passwordResetRepository = module.get<Repository<PasswordReset>>(PASSWORD_RESET_REPOSITORY_TOKEN);
+    userPasswordRepository = module.get<Repository<UserPassword>>(
+      USER_PASSWORD_REPOSITORY_TOKEN,
+    );
+    passwordResetRepository = module.get<Repository<PasswordReset>>(
+      PASSWORD_RESET_REPOSITORY_TOKEN,
+    );
   });
 
   it('should be defined', () => {
@@ -73,7 +80,7 @@ describe('UsersService', () => {
       const userId = 1;
       const result = await service.findById(userId);
       expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: userId }
+        where: { id: userId },
       });
       expect(result).toEqual(mockUser);
     });
@@ -86,13 +93,15 @@ describe('UsersService', () => {
   });
 
   describe('findByEmail', () => {
-    it('should return a user by email', async () => {
-      const email = 'test@example.com';
-      const result = await service.findByEmail(email);
-      expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { email }
-      });
+    it('should return a user if found by email', async () => {
+      const mockUser = { id: 1, email: 'test@example.com' } as User;
+      const findOneSpy = jest.spyOn(userRepository, 'findOne').mockResolvedValue(mockUser);
+
+      const result = await service.findByEmail('test@example.com');
       expect(result).toEqual(mockUser);
+      expect(findOneSpy).toHaveBeenCalledWith({
+        where: { email: 'test@example.com' },
+      });
     });
   });
 });

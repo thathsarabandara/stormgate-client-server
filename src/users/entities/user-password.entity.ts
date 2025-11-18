@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('user_passwords')
@@ -9,7 +17,7 @@ export class UserPassword {
   @Column({ name: 'password_hash' })
   passwordHash: string;
 
-  @OneToOne(() => User, user => user.password)
+  @OneToOne(() => User, (user) => user.password)
   @JoinColumn({ name: 'userId' })
   user: User;
 

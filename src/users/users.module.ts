@@ -14,8 +14,8 @@ import { UsersService } from './users.service';
       UserPassword,
       Token,
       RefreshToken,
-      PasswordReset
-    ])
+      PasswordReset,
+    ]),
   ],
   providers: [UsersService],
   exports: [UsersService, TypeOrmModule],
