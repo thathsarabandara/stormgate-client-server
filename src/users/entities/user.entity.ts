@@ -1,12 +1,12 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
-  OneToOne, 
-  OneToMany, 
-  JoinColumn 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 
 import type { UserPassword } from './user-password.entity';
@@ -31,7 +31,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: ['user', 'admin'],
-    default: 'user'
+    default: 'user',
   })
   role: 'user' | 'admin';
 

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
@@ -39,7 +43,9 @@ export class AuthService {
 
     this.sendOtpByEmail(savedUser.email, otpCode);
 
-    return { message: 'Registered successfully. Please verify OTP sent to email.' };
+    return {
+      message: 'Registered successfully. Please verify OTP sent to email.',
+    };
   }
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -48,7 +54,10 @@ export class AuthService {
       return null;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.password.passwordHash,
+    );
     if (!isPasswordValid) {
       return null;
     }
@@ -63,7 +72,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      user.password.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -101,7 +113,9 @@ export class AuthService {
   async requestPasswordReset(dto: RequestPasswordResetDto) {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
-      return { message: 'If the email is registered, a reset link has been sent.' };
+      return {
+        message: 'If the email is registered, a reset link has been sent.',
+      };
     }
 
     const token = this.generateResetToken();
@@ -110,11 +124,15 @@ export class AuthService {
 
     this.sendPasswordResetByEmail(user.email, token);
 
-    return { message: 'If the email is registered, a reset link has been sent.' };
+    return {
+      message: 'If the email is registered, a reset link has been sent.',
+    };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    const passwordReset = await this.usersService.findByPasswordResetToken(dto.token);
+    const passwordReset = await this.usersService.findByPasswordResetToken(
+      dto.token,
+    );
     if (!passwordReset || !passwordReset.resetExpiresAt) {
       throw new BadRequestException('Invalid or expired token');
     }
@@ -130,9 +148,15 @@ export class AuthService {
     return { message: 'Password has been reset successfully' };
   }
 
-  async handleGoogleLogin(profile: { id: string; email?: string; name?: string }) {
+  async handleGoogleLogin(profile: {
+    id: string;
+    email?: string;
+    name?: string;
+  }) {
     if (!profile.email) {
-      throw new BadRequestException('Google account does not have an email address');
+      throw new BadRequestException(
+        'Google account does not have an email address',
+      );
     }
 
     let user = await this.usersService.findByEmail(profile.email);
@@ -170,13 +194,13 @@ export class AuthService {
 
   private sendOtpByEmail(email: string, otp: string) {
     // Integrate real email provider here
-    // eslint-disable-next-line no-console
+
     console.log(`Send OTP ${otp} to ${email}`);
   }
 
   private sendPasswordResetByEmail(email: string, token: string) {
     // Integrate real email provider here
-    // eslint-disable-next-line no-console
+
     console.log(`Send password reset token ${token} to ${email}`);
   }
 }

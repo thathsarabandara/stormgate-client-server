@@ -8,13 +8,23 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/oauth2/callback',
+      callbackURL:
+        process.env.GOOGLE_CALLBACK_URL ||
+        'http://localhost:3000/oauth2/callback',
       scope: ['email', 'profile'],
     });
   }
 
-  validate(_accessToken: string, _refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) {
-    const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : undefined;
+  validate(
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Profile,
+    done: (error: any, user?: any) => void,
+  ) {
+    const email =
+      profile.emails && profile.emails.length > 0
+        ? profile.emails[0].value
+        : undefined;
     const name = profile.displayName;
     const userProfile = { id: profile.id, email, name };
     done(null, userProfile);

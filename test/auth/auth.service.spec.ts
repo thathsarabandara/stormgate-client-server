@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../../src/users/users.service';
 import { AuthService } from '../../src/auth/auth.service';
+import { User } from '../../src/users/entities/user.entity';
+import { UserPassword } from '../../src/users/entities/user-password.entity';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -13,10 +15,22 @@ describe('AuthService', () => {
     id: 1,
     username: 'testuser',
     email: 'test@example.com',
-    password: 'hashedpassword',
+    password: { passwordHash: 'hashedpassword' } as UserPassword,
     isEmailVerified: true,
-    role: 'user',
-  };
+    role: 'user' as const,
+    otpCode: null,
+    otpExpiresAt: null,
+    googleId: null,
+    tokens: [],
+    refreshTokens: [],
+    passwordResets: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    hasId: () => true,
+    save: () => Promise.resolve(mockUser as unknown as User),
+    remove: () => Promise.resolve(mockUser as unknown as User),
+    reload: () => Promise.resolve(mockUser as unknown as User),
+  } as unknown as User;
 
   const mockToken = 'test.jwt.token';
 
@@ -57,41 +71,76 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user if credentials are valid', async () => {
-      jest.spyOn(usersService, 'findByEmailWithPassword').mockResolvedValueOnce({
+      const userWithPassword: User = {
         ...mockUser,
-        password: { passwordHash: 'hashedpassword' } as any,
-      } as any);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
-      
-      const result = await service.validateUser('test@example.com', 'password');
-      expect(result).toEqual({
+        password: { passwordHash: 'hashedpassword' } as UserPassword,
+      } as unknown as User;
+
+      const findByEmailSpy = jest
+        .spyOn(usersService, 'findByEmailWithPassword')
+        .mockResolvedValueOnce(userWithPassword);
+
+      const compareSpy = jest
+        .spyOn(bcrypt, 'compare')
+        .mockImplementation((): Promise<boolean> => {
+          return Promise.resolve(true);
+        });
+
+      await expect(
+        service.validateUser('test@example.com', 'password'),
+      ).resolves.toEqual({
         id: mockUser.id,
         username: mockUser.username,
         email: mockUser.email,
         role: mockUser.role,
       });
+
+      expect(findByEmailSpy).toHaveBeenCalledWith('test@example.com');
+      expect(compareSpy).toHaveBeenCalledWith('password', 'hashedpassword');
     });
 
     it('should return null if user is not found', async () => {
-      jest.spyOn(usersService, 'findByEmailWithPassword').mockResolvedValueOnce(null);
-      const result = await service.validateUser('nonexistent@example.com', 'password');
-      expect(result).toBeNull();
+      jest
+        .spyOn(usersService, 'findByEmailWithPassword')
+        .mockResolvedValueOnce(null);
+      const result = service.validateUser(
+        'nonexistent@example.com',
+        'password',
+      );
+      await expect(result).resolves.toBeNull();
     });
   });
 
   describe('login', () => {
     it('should return access token', async () => {
-      jest.spyOn(usersService, 'findByEmailWithPassword').mockResolvedValueOnce({
+      const userWithPassword: User = {
         ...mockUser,
-        password: { passwordHash: 'hashedpassword' } as any,
-      } as any);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
+        password: { passwordHash: 'hashedpassword' } as UserPassword,
+      } as User;
 
-      const result = await service.login({ email: mockUser.email, password: 'password' });
-      expect(result).toEqual({
+      jest
+        .spyOn(usersService, 'findByEmailWithPassword')
+        .mockResolvedValueOnce(userWithPassword);
+
+      jest.spyOn(bcrypt, 'compare').mockImplementation(() => {
+        return Promise.resolve(true);
+      });
+
+      const signAsyncSpy = jest
+        .spyOn(jwtService, 'signAsync')
+        .mockImplementation((): Promise<string> => {
+          return Promise.resolve(mockToken);
+        });
+
+      await expect(
+        service.login({
+          email: mockUser.email,
+          password: 'password',
+        }),
+      ).resolves.toEqual({
         accessToken: mockToken,
       });
-      expect(jwtService.signAsync).toHaveBeenCalledWith({
+      expect(signAsyncSpy).toHaveBeenCalledWith({
         sub: mockUser.id,
         email: mockUser.email,
       });

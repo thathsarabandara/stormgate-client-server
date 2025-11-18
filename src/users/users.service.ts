@@ -47,7 +47,9 @@ export class UsersService {
   }
 
   async setUserPassword(user: User, passwordHash: string) {
-    let userPassword = await this.userPasswordRepository.findOne({ where: { userId: user.id } });
+    let userPassword = await this.userPasswordRepository.findOne({
+      where: { userId: user.id },
+    });
 
     if (!userPassword) {
       userPassword = this.userPasswordRepository.create({
