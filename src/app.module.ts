@@ -12,12 +12,20 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT) || 3306,
-      username: process.env.DB_USERNAME || 'storm',
-      password: process.env.DB_PASSWORD || 'Storm@2002',
-      database: process.env.DB_NAME || 'stormgate',
+      port: Number(process.env.DB_PORT) || 4000,
+      username: process.env.DB_USERNAME || 'root',
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
+      ssl: {
+        rejectUnauthorized: true,
+      },
+      extra: {
+        ssl: {
+          rejectUnauthorized: true,
+        },
+      },
     }),
     UsersModule,
     AuthModule,
